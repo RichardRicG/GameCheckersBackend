@@ -16,11 +16,6 @@ class Board:
     def __init__(self):
         self.board = create_initial_board()
 
-# Create a glo
+# Create a global board
 global_board = Board()
 
-board_bp = Blueprint('board', __name__)
-
-@board_bp.route('/board', methods=['GET'])
-def get_board():
-    return jsonify(global_board.board)
