@@ -7,7 +7,7 @@ class Player(db.Model):
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    # Relationship to Game
+    # R/ship to Game
     games = db.relationship('Game', backref='player', lazy=True)
 
 class Game(db.Model):
