@@ -1,10 +1,10 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from .models import db
 
 
 migrate = Migrate()
+
 
 def create_app():
     app = Flask(__name__)
@@ -22,5 +22,8 @@ def create_app():
 
     from .auth_route import auth_blueprint
     app.register_blueprint(auth_blueprint)
+    
+    from .game_routes import board_bp
+    app.register_blueprint(board_bp)
 
     return app
