@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from .models import db, Player, Game
+from .models import db
 
 
 migrate = Migrate()
@@ -16,7 +16,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Register blueprints
-    # from .test_route import main
-    # app.register_blueprint(main)
+    from .routes.test_route import main
+    app.register_blueprint(main)
 
     return app
