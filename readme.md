@@ -7,5 +7,6 @@
 # Installation
 
 - Run pipenv install and run pipenv shell
--  Install flask
-- Run 'python app.py'
+- Install flask
+- Run 'python main.py'
+
