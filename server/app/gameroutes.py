@@ -41,6 +41,7 @@ def game():
     return jsonify({'message': 'Invalid request method'}), 405
 
 
+
 def is_valid_move(board, start_row, start_col, end_row, end_col):
     piece = board[start_row][start_col]
     
