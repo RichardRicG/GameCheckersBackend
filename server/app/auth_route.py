@@ -55,5 +55,8 @@ def login():
         return jsonify({'message': 'Login successful!'}), 200
     else:
         return jsonify({'message': 'Login unsuccessful. Please check your username and password.'}), 401
-        
-        
+
+@auth_blueprint.route('/logout', methods=['POST'])
+def logout():
+    # Logic for logout (if needed)
+    return jsonify({'message': 'Logout endpoint'})
