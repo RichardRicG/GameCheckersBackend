@@ -1,5 +1,3 @@
-from flask import Blueprint, jsonify
-
 def create_initial_board():
     return [
         [' ', 'c', ' ', 'c', ' ', 'c', ' ', 'c'],

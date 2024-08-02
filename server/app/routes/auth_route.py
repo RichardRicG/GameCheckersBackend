@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_bcrypt import Bcrypt
-from .models import db, Player
+from ..models import db, Player
 
 auth_blueprint = Blueprint('auth_route', __name__)
 bcrypt = Bcrypt()
