@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from .models import db, Player, Game
 
 
+
 migrate = Migrate()
 
 def create_app():
@@ -16,7 +17,12 @@ def create_app():
     migrate.init_app(app, db)
 
     # Register blueprints
-    # from .test_route import main
-    # app.register_blueprint(main)
+    from .test_route import main
+    app.register_blueprint(main)
+    from.gameroutes import game_blueprint
+    app.register_blueprint(game_blueprint)
+    
+
+
 
     return app
