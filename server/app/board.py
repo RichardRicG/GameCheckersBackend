@@ -16,7 +16,7 @@ class Board:
     def __init__(self):
         self.board = create_initial_board()
 
-# Create a global board instance
+# Create a glo
 global_board = Board()
 
 board_bp = Blueprint('board', __name__)
