@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from ..game_Engine.board import global_board
+from ..game_Engine.computer import get_all_computer_moves
 
 main = Blueprint('main', __name__ )
 board_bp = Blueprint('board', __name__)
@@ -64,3 +65,17 @@ def is_valid_move(board, start_row, start_col, end_row, end_col):
     
     return False, 'Invalid move.'
 
+#routes for the computer 
+@game_blueprint.route("/computer_move", methods=['POST'])
+def computer_move():
+    # Make a random move for the computer
+    computer_move_details = get_all_computer_moves(global_board.board)
+#
+    if computer_move_details:
+        return jsonify({
+            'message': 'Computer made a move',
+            'computer_move': computer_move_details,
+            'board': global_board.board
+        })
+    else:
+        return jsonify({'message': 'No valid moves available for the computer'}), 400
