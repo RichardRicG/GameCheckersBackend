@@ -1,9 +1,17 @@
 from flask import Blueprint, jsonify, request
 from ..game_Engine.board import global_board
+from ..game_Engine.moves import is_valid_move
+from ..game_Engine.computer import make_computer_move
 
-main = Blueprint('main', __name__ )
+main = Blueprint('main', __name__)
 board_bp = Blueprint('board', __name__)
 game_blueprint = Blueprint('game', __name__)
+
+# to Initialize the game state
+game_state = {
+     # ' the player' or 'thr computer'
+    'current_turn': 'player', 
+}
 
 @main.route('/')
 def home():
@@ -12,7 +20,6 @@ def home():
 @board_bp.route('/board', methods=['GET'])
 def get_board():
     return jsonify(global_board.board)
-
 
 @game_blueprint.route("/game", methods=['POST'])
 def game():
@@ -27,40 +34,54 @@ def game():
         if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
             return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
 
-        is_valid, error_message = is_valid_move(board, start_row, start_col, end_row, end_col)
+        if game_state['current_turn'] == 'player':
+            is_valid, error_message = is_valid_move(board, start_row, start_col, end_row, end_col)
 
-        if is_valid:
-            # Update the board for a valid move
-            board[end_row][end_col] = board[start_row][start_col]
-            board[start_row][start_col] = ' '
-            return jsonify({'message': 'Valid move', 'board': board})
+            if is_valid:
+                # Update the board for a valid move
+                board[end_row][end_col] = board[start_row][start_col]
+                board[start_row][start_col] = ' '
+
+                # Changing  the turn play to computer
+                game_state['current_turn'] = 'computer'
+
+                # now  a computer move random or mmediately after the player has made amove
+                computer_move_details = make_computer_move(board)
+                
+                if computer_move_details:
+                    # Change the turn back to player
+                    game_state['current_turn'] = 'player'  
+
+                return jsonify({
+                    'message': 'Valid move',
+                    'player_move': {'start': (start_row, start_col), 'end': (end_row, end_col)},
+                    'computer_move': computer_move_details,
+                    'board': board
+                })
+            else:
+                return jsonify({'message': error_message}), 400
         else:
-            return jsonify({'message': error_message}), 400
+            return jsonify({'message': 'It\'s not your turn. Wait for the computer to make a move.'}), 403
 
     return jsonify({'message': 'Invalid request method'}), 405
 
 
-
-def is_valid_move(board, start_row, start_col, end_row, end_col):
-    piece = board[start_row][start_col]
-    
-    if piece == ' ':
-        return False, 'Invalid move. No piece at the starting position.'
-    
-    if piece == 'p' and end_row >= start_row:
-        return False, 'Invalid move. Player cannot move backwards.'
-    elif piece == 'c' and end_row <= start_row:
-        return False, 'Invalid move. Computer cannot move backwards.'
-    
-    # Check if the end position is empty and the move is diagonal
-    if board[end_row][end_col] == ' ':
-        if abs(start_row - end_row) == 1 and abs(start_col - end_col) == 1:
-            return True, None
-        elif abs(start_row - end_row) == 2 and abs(start_col - end_col) == 2:
-            captured_row = (start_row + end_row) // 2
-            captured_col = (start_col + end_col) // 2
-            if board[captured_row][captured_col] in ('p', 'c'):
-                return True, None
-    
-    return False, 'Invalid move.'
-
+# Routes for the computer
+@game_blueprint.route("/computer_move", methods=['POST'])
+def computer_move():
+    if game_state['current_turn'] == 'computer':
+        # Make a random move for the computer
+        computer_move_details = make_computer_move(global_board.board)
+        
+        if computer_move_details:
+            # Change the turn back to player
+            game_state['current_turn'] = 'player'  
+            return jsonify({
+                'message': 'Computer made a move',
+                'computer_move': computer_move_details,
+                'board': global_board.board
+            })
+        else:
+            return jsonify({'message': 'No valid moves available for the computer'}), 400
+    else:
+        return jsonify({'message': 'It\'s not the computer\'s turn.'}), 403
