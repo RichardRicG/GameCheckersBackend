@@ -41,6 +41,23 @@ def make_computer_move(board):
 
     # Print the move and the updated board state
     print(f"Computer moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
-
+    print_board(board)
 #return the current move state 
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
+
+def is_valid_position(row, col, board):
+    """
+    Checks if a position is within bounds and empty.
+    """
+    if 0 <= row < len(board) and 0 <= col < len(board[0]) and board[row][col] == ' ':
+        return True
+    return False
+
+def print_board(board):
+    """
+    Prints the current state of the board in a readable format.
+    """
+    print("Current Board State:")
+    for row in board:
+        print(' '.join(row))
+    print("\n")
