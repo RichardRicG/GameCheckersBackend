@@ -65,6 +65,7 @@ def game():
 
     return jsonify({'message': 'Invalid request method'}), 405
 
+
 # Routes for the computer
 @game_blueprint.route("/computer_move", methods=['POST'])
 def computer_move():
