@@ -4,7 +4,6 @@ from ..game_Engine.moves import is_valid_move
 from ..game_Engine.computer import make_computer_move
 
 main = Blueprint('main', __name__)
-board_bp = Blueprint('board', __name__)
 game_blueprint = Blueprint('game', __name__)
 
 # to Initialize the game state
@@ -17,7 +16,7 @@ game_state = {
 def home():
     return "welcome grp4 checkers, testing!"
 
-@board_bp.route('/board', methods=['GET'])
+@game_blueprint.route('/board', methods=['GET'])
 def get_board():
     return jsonify(global_board.board)
 

@@ -16,12 +16,3 @@ class Game(db.Model):
     board = db.Column(db.JSON, nullable=False)
 
     
-# class Move(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     game_id = db.Column(db.Integer, db.ForeignKey('game.id'), nullable=False)
-#     start_row = db.Column(db.Integer, nullable=False)
-#     start_col = db.Column(db.Integer, nullable=False)
-#     end_row = db.Column(db.Integer, nullable=False)
-#     end_col = db.Column(db.Integer, nullable=False)
-#     game = db.relationship('Game', backref=db.backref('moves', lazy=True))
-#     player = db.relationship('Player', backref=db.backref('moves', lazy=True))

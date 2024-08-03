@@ -15,16 +15,12 @@ def create_app():
     migrate.init_app(app, db)
 
     # Register blueprints
-
     
     from .routes.test_route import main
     app.register_blueprint(main)
 
     from .routes.auth_route import auth_blueprint
     app.register_blueprint(auth_blueprint)
-    
-    from .routes.game_routes import board_bp
-    app.register_blueprint(board_bp)
     
     from.routes.game_routes import game_blueprint
     app.register_blueprint(game_blueprint)
