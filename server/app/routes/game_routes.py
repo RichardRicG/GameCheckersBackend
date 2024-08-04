@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request,g as globaluserdata
 from ..models import db, Player,Game
 
-from ..game_Engine.board import global_board
+from ..game_Engine.board import global_board,create_initial_board
 from ..game_Engine.moves import is_valid_move
 from ..game_Engine.computer import make_computer_move
 import jwt 
@@ -126,7 +126,7 @@ def new_game():
 
         if current_player:
             try:
-                new_game= Game(player_id=current_player.id,board=global_board.create_initial_board())
+                new_game= Game(player_id=current_player.id,board=create_initial_board())
                 db.session.add(new_game)
                 db.session.commit()
                 return jsonify({'message': 'New game started',"board":new_game.board}), 201
