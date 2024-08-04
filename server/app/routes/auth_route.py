@@ -1,9 +1,12 @@
 from flask import Blueprint, jsonify, request
 from flask_bcrypt import Bcrypt
 from ..models import db, Player
+import jwt
+import datetime
 
 auth_blueprint = Blueprint('auth_route', __name__)
 bcrypt = Bcrypt()
+SECRET_KEY = 'GRP4_Checkers' 
 
 @auth_blueprint.route('/register', methods=['POST'])
 def register():
@@ -52,7 +55,22 @@ def login():
     player = Player.query.filter_by(username=username).first()
 
     if player and bcrypt.check_password_hash(player.password, password):
-        return jsonify({'message': 'Login successful!'}), 200
+        try:
+            token = jwt.encode(
+                {
+                    'username': player.username,
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1)
+                },
+                SECRET_KEY,
+                algorithm='HS256'
+            )
+
+            # token  decoded to string 
+            token = token.decode('utf-8') if isinstance(token, bytes) else token
+
+            return jsonify({'message': 'Login successful!', 'token': token}), 200
+        except Exception as e:
+            return jsonify({'message': 'Token generation failed', 'error': str(e)}), 500
     else:
         return jsonify({'message': 'Login unsuccessful. Please check your username and password.'}), 401
 
@@ -60,3 +78,4 @@ def login():
 def logout():
     # Logic for logout (if needed)
     return jsonify({'message': 'Logout endpoint'})
+

@@ -9,7 +9,7 @@ def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'checkers game'
+    app.config['SECRET_KEY'] = 'GRP4_Checkers'
 
     db.init_app(app)
     migrate.init_app(app, db)
