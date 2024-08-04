@@ -2,9 +2,13 @@ from flask import Blueprint, jsonify, request
 from ..game_Engine.board import global_board
 from ..game_Engine.moves import is_valid_move
 from ..game_Engine.computer import make_computer_move
+import jwt
+from functools import wraps
 
 main = Blueprint('main', __name__)
 game_blueprint = Blueprint('game', __name__)
+
+SECRET_KEY = 'GRP4_Checkers'
 
 # to Initialize the game state
 game_state = {
@@ -12,15 +16,38 @@ game_state = {
     'current_turn': 'player', 
 }
 
+# JWT authentication decorator
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 403
+
+        try:
+            token = token.split()[1]  
+            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired'}), 403
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token'}), 403
+
+        return f(*args, **kwargs)
+
+    return decorated
+
 @main.route('/')
 def home():
     return "welcome grp4 checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
+@token_required
 def get_board():
     return jsonify(global_board.board)
 
 @game_blueprint.route("/game", methods=['POST'])
+@token_required
 def game():
     if request.method == 'POST':
         # Get the game board, start and end positions from the request data
@@ -67,6 +94,7 @@ def game():
 
 # Routes for the computer
 @game_blueprint.route("/computer_move", methods=['POST'])
+@token_required
 def computer_move():
     if game_state['current_turn'] == 'computer':
         # Make a random move for the computer
