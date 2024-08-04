@@ -1,8 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request,g as globaluserdata
+from ..models import db, Player,Game
+
 from ..game_Engine.board import global_board
 from ..game_Engine.moves import is_valid_move
 from ..game_Engine.computer import make_computer_move
-import jwt
+import jwt 
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from functools import wraps
 
 main = Blueprint('main', __name__)
@@ -28,6 +31,7 @@ def token_required(f):
         try:
             token = token.split()[1]  
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            globaluserdata.current_user = data
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 403
         except jwt.InvalidTokenError:
@@ -112,3 +116,22 @@ def computer_move():
             return jsonify({'message': 'No valid moves available for the computer'}), 400
     else:
         return jsonify({'message': 'It\'s not the computer\'s turn.'}), 403
+
+@game_blueprint.route("/newgame",methods=['GET'])
+@token_required
+# @jwt_required
+def new_game():
+    
+        current_player = Player.query.filter_by(username=globaluserdata.current_user['username']).first()
+
+        if current_player:
+            try:
+                new_game= Game(player_id=current_player.id,board=global_board.board)
+                db.session.add(new_game)
+                db.session.commit()
+                return jsonify({'message': 'New game started',"board":new_game.board}), 201
+            except Exception as e:
+                return jsonify({'message': str(e)}), 500
+        else:
+            return jsonify({'message': 'User not logged in'}), 401
+    
