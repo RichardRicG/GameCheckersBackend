@@ -126,7 +126,7 @@ def new_game():
 
         if current_player:
             try:
-                new_game= Game(player_id=current_player.id,board=global_board.board)
+                new_game= Game(player_id=current_player.id,board=global_board.create_initial_board())
                 db.session.add(new_game)
                 db.session.commit()
                 return jsonify({'message': 'New game started',"board":new_game.board}), 201
