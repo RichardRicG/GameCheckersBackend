@@ -57,8 +57,8 @@ def game():
         end_row = request.json.get('end_row')
         end_col = request.json.get('end_col')
 
-        if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
-            return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
+        # if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
+            # return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
 
         if game_state['current_turn'] == 'player':
             is_valid, error_message = is_valid_move(board, start_row, start_col, end_row, end_col)
