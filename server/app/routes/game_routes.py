@@ -54,58 +54,47 @@ def get_board():
 @token_required
 def game():
     if request.method == 'POST':
-        current_player = Player.query.filter_by(username=globaluserdata.current_user['username']).first()
-        currentgame=Game.query.filter_by(player_id=current_player.id).first()
-        board = request.json.get('board', global_board.board)  
-
-        if currentgame !=board:
-            # return jsonify({'message': 'You must have manipulated the board state and hence will use the data base board state'}), 200
-        
-        # else:
         # Get the game board, start and end positions from the request data
-            board=currentgame.board
-            start_row = request.json.get('start_row')
-            start_col = request.json.get('start_col')
-            end_row = request.json.get('end_row')
-            end_col = request.json.get('end_col')
+        board = request.json.get('board', global_board.board)  
+        start_row = request.json.get('start_row')
+        start_col = request.json.get('start_col')
+        end_row = request.json.get('end_row')
+        end_col = request.json.get('end_col')
 
-            if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
-                return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
+        # if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
+            # return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
 
-            if game_state['current_turn'] == 'player':
-                is_valid, error_message = is_valid_move(board, start_row, start_col, end_row, end_col)
+        if game_state['current_turn'] == 'player':
+            is_valid, error_message = is_valid_move(board, start_row, start_col, end_row, end_col)
 
-                if is_valid:
-                    # Update the board for a valid move
-                    board[end_row][end_col] = board[start_row][start_col]
-                    board[start_row][start_col] = ' '
+            if is_valid:
+                # Update the board for a valid move
+                board[end_row][end_col] = board[start_row][start_col]
+                board[start_row][start_col] = ' '
 
-                    # Changing  the turn play to computer
-                    game_state['current_turn'] = 'computer'
+                # Changing  the turn play to computer
+                game_state['current_turn'] = 'computer'
 
-                    # now  a computer move random or mmediately after the player has made amove
-                    computer_move_details = make_computer_move(board)
-                    
-                    if computer_move_details:
-                        # Change the turn back to player
-                        game_state['current_turn'] = 'player'  
+                # now  a computer move random or mmediately after the player has made amove
+                computer_move_details = make_computer_move(board)
+                
+                if computer_move_details:
+                    # Change the turn back to player
+                    game_state['current_turn'] = 'player'  
 
-                        #once everything is done save the move in the data base and update the game state
-                        currentgame.board=board
-                        db.session.commit()
-
-                    return jsonify({
-                        'message': 'Valid move',
-                        'player_move': {'start': (start_row, start_col), 'end': (end_row, end_col)},
-                        'computer_move': computer_move_details,
-                        'board': board
-                    })
-                else:
-                    return jsonify({'message': error_message}), 400
+                return jsonify({
+                    'message': 'Valid move',
+                    'player_move': {'start': (start_row, start_col), 'end': (end_row, end_col)},
+                    'computer_move': computer_move_details,
+                    'board': board
+                })
             else:
-                return jsonify({'message': 'It\'s not your turn. Wait for the computer to make a move.'}), 403
+                return jsonify({'message': error_message}), 400
+        else:
+            return jsonify({'message': 'It\'s not your turn. Wait for the computer to make a move.'}), 403
 
     return jsonify({'message': 'Invalid request method'}), 405
+
 
 
 # Routes for the computer
@@ -138,7 +127,8 @@ def new_game():
 
         if current_player:
             try:
-                new_game= Game(player_id=current_player.id,board=create_initial_board())
+                global_board.board=create_initial_board()
+                new_game= Game(player_id=current_player.id, board=global_board.board)
                 db.session.add(new_game)
                 db.session.commit()
                 return jsonify({'message': 'New game started',"board":new_game.board}), 201
