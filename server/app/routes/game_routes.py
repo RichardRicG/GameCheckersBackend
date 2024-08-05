@@ -59,9 +59,9 @@ def game():
         board = request.json.get('board', global_board.board)  
 
         if currentgame !=board:
-            return jsonify({'message': 'You must have manipulated the board state and hence will use the data base board state'}), 200
+            # return jsonify({'message': 'You must have manipulated the board state and hence will use the data base board state'}), 200
         
-        else:
+        # else:
         # Get the game board, start and end positions from the request data
             board=currentgame.board
             start_row = request.json.get('start_row')
