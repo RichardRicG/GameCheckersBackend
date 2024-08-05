@@ -26,7 +26,7 @@ def token_required(f):
             return jsonify({'message': 'Token is missing!'}), 403
 
         try:
-            token = token.split()[1]  # Assuming 'Bearer <token>'
+            token = token.split()[1]  
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
             globaluserdata.current_user = data
         except jwt.ExpiredSignatureError:
