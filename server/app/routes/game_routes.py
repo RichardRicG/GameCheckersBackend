@@ -1,13 +1,11 @@
 from flask import Blueprint, jsonify, request,g as globaluserdata
 from ..models import db, Player,Game
-
 from ..game_Engine.board import global_board,create_initial_board
 from ..game_Engine.moves import is_valid_move
 from ..game_Engine.computer import make_computer_move
 import jwt
 from functools import wraps
 import jwt 
-from flask_jwt_extended import get_jwt_identity, jwt_required
 from functools import wraps
 
 main = Blueprint('main', __name__)
@@ -70,7 +68,6 @@ def home():
 
 @game_blueprint.route('/board', methods=['GET'])
 @token_required
-@token_required
 def get_board():
     return jsonify(global_board.board)
 
@@ -87,9 +84,7 @@ def game():
 
         # if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
             # return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
-        # if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
-            # return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
-
+       
         if game_state['current_turn'] == 'player':
             is_valid, error_message = is_valid_move(board, start_row, start_col, end_row, end_col)
 
@@ -146,7 +141,6 @@ def computer_move():
 
 @game_blueprint.route("/newgame",methods=['GET'])
 @token_required
-# @jwt_required
 def new_game():
     
         current_player = Player.query.filter_by(username=globaluserdata.current_user['username']).first()
