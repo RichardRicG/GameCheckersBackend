@@ -30,12 +30,7 @@ def get_all_computer_moves(board):
     Get all valid moves for the computer playing as 'c' pieces, including normal moves.
     """
     moves = []
-    captures = get_all_computer_captures(board)  # Get all capture moves
 
-    if captures:
-        return captures  # Prioritize capture moves if available
-
-    # Check for normal moves if no captures are available
     for row in range(8):
         for col in range(8):
             if board[row][col] == 'c':  # If we find a computer's piece ('c')
@@ -57,28 +52,28 @@ def get_all_computer_moves(board):
 
 def make_computer_move(board):
     """
-    Function to make a move for the computer, with captures prioritized if available.
+    Function to make a move for the computer, prioritizing captures over normal moves.
     """
+    capture_moves = get_all_computer_captures(board)
     possible_moves = get_all_computer_moves(board)
 
-    if not possible_moves:
-        print("No valid moves available for the computer.")
-        return None
-
-    move = random.choice(possible_moves)
-    
-    if len(move) == 5:  # This is a capture move
+    if capture_moves:
+        move = random.choice(capture_moves)
         start_row, start_col, end_row, end_col, capture_row, capture_col = move
         board[end_row][end_col] = board[start_row][start_col]
         board[start_row][start_col] = ' '
         board[capture_row][capture_col] = ' '  # Remove the captured piece
         print(f"Computer captured a piece at ({capture_row}, {capture_col}) and moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
-    else:  # Normal move
+    elif possible_moves:
+        move = random.choice(possible_moves)
         start_row, start_col, end_row, end_col = move
         board[end_row][end_col] = board[start_row][start_col]
         board[start_row][start_col] = ' '  # Clear the starting position
         print(f"Computer moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
-    
+    else:
+        print("No valid moves available for the computer.")
+        return None
+
     print_board(board)
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
 
