@@ -50,12 +50,25 @@ def get_all_computer_moves(board):
 
     return moves
 
+def count_pieces(board, piece_type):
+    """
+    Counts the number of pieces of a given type on the board.
+    """
+    count = 0
+    for row in board:
+        count += row.count(piece_type)
+    return count
+
 def make_computer_move(board):
     """
     Function to make a move for the computer, prioritizing captures over normal moves.
     """
     capture_moves = get_all_computer_captures(board)
     possible_moves = get_all_computer_moves(board)
+
+    # Count pieces before the move
+    computer_pieces_before = count_pieces(board, 'c')
+    opponent_pieces_before = count_pieces(board, 'p')
 
     if capture_moves:
         move = random.choice(capture_moves)
@@ -74,7 +87,14 @@ def make_computer_move(board):
         print("No valid moves available for the computer.")
         return None
 
+    # Count pieces after the move
+    computer_pieces_after = count_pieces(board, 'c')
+    opponent_pieces_after = count_pieces(board, 'p')
+
     print_board(board)
+    print(f"Computer pieces before move: {computer_pieces_before}, after move: {computer_pieces_after}")
+    print(f"Opponent pieces before move: {opponent_pieces_before}, after move: {opponent_pieces_after}")
+
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
 
 def is_valid_position(row, col, board):
