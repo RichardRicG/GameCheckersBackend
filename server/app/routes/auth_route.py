@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_bcrypt import Bcrypt
 from ..models import db, Player
 import jwt
-import datetime
+import datetime 
 
 
 auth_blueprint = Blueprint('auth_route', __name__)

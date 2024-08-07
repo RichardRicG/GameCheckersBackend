@@ -5,10 +5,12 @@ from ..game_Engine.moves import is_valid_move
 from ..game_Engine.computer import make_computer_move
 import jwt
 from functools import wraps
+from flask_cors import CORS
 
 main = Blueprint('main', __name__)
 game_blueprint = Blueprint('game', __name__)
 
+cors = CORS()
 SECRET_KEY = 'GRP4_Checkers'
 
 # Initialize 
