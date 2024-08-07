@@ -4,6 +4,7 @@ from ..models import db, Player
 import jwt
 import datetime
 
+
 auth_blueprint = Blueprint('auth_route', __name__)
 bcrypt = Bcrypt()
 SECRET_KEY = 'GRP4_Checkers' 
