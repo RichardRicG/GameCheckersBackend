@@ -45,7 +45,7 @@ def home():
     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
-@token_required
+# @token_required
 def get_board():
     return jsonify(global_board.board)
 
