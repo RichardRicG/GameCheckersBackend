@@ -44,15 +44,19 @@ def get_all_moves(board, piece_type):
                         moves.append((row, col, end_row, end_col))
     return moves
 
-def count_pieces(board, piece_type):
+def count_pieces(board):
     """
-    Counts the number of pieces of a given type on the board.
+    Counts the number of pieces for both player and computer on the board.
+    Returns a tuple with the counts (player_pieces, computer_pieces).
     """
-    count = 0
+    player_pieces = 0
+    computer_pieces = 0
+
     for row in board:
-        count += row.count(piece_type.lower())
-        count += row.count(piece_type.upper())
-    return count
+        player_pieces += row.count('p') + row.count('P')
+        computer_pieces += row.count('c') + row.count('C')
+    
+    return player_pieces, computer_pieces
 
 def make_computer_move(board):
     """
@@ -83,6 +87,10 @@ def make_computer_move(board):
         board[end_row][end_col] = 'C'
 
     print_board(board)
+
+    # Print piece counts
+    player_count, computer_count = count_pieces(board)
+    print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
 
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
 
@@ -120,8 +128,12 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
     if end_row == 0 and board[end_row][end_col] == 'p':
         board[end_row][end_col] = 'P'
         print("Player has promoted to a king.")
-    
+
     print_board(board)
+
+    # Print piece counts
+    player_count, computer_count = count_pieces(board)
+    print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
 
     return True
 
@@ -164,5 +176,3 @@ def is_valid_move(board, start_row, start_col, end_row, end_col):
                 return True, f'Captured {captured_piece}'
     
     return False, 'Invalid move.'
-
-
