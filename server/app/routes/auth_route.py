@@ -60,7 +60,7 @@ def login():
             token = jwt.encode(
                 {
                     'username': player.username,
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1500)
                 },
                 SECRET_KEY,
                 algorithm='HS256'
