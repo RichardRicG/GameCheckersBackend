@@ -1,11 +1,14 @@
 from flask import Blueprint, jsonify, request, g as globaluserdata
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
-from ..game_Engine.moves import is_valid_move
-from ..game_Engine.computer import make_computer_move
-import jwt
+
+from ..game_Engine.computer import *
 from functools import wraps
+
+import jwt
+
 from flask_cors import CORS
+
 
 main = Blueprint('main', __name__)
 game_blueprint = Blueprint('game', __name__)
@@ -17,7 +20,6 @@ SECRET_KEY = 'GRP4_Checkers'
 game_state = {
     'current_turn': 'player',
 }
-
 # JWT authentiction decorator
 def token_required(f):
     @wraps(f)
@@ -133,3 +135,6 @@ def new_game():
             return jsonify({'message': str(e)}), 500
     else:
         return jsonify({'message': 'User not logged in'}), 401
+    
+
+
