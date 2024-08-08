@@ -1,14 +1,19 @@
 from flask import Blueprint, jsonify, request, g as globaluserdata
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
-# from ..game_Engine.moves import is_valid_move
+
 from ..game_Engine.computer import *
 from functools import wraps
+
 import jwt
+
+from flask_cors import CORS
+
 
 main = Blueprint('main', __name__)
 game_blueprint = Blueprint('game', __name__)
 
+cors = CORS()
 SECRET_KEY = 'GRP4_Checkers'
 
 # Initialize 
@@ -42,7 +47,7 @@ def home():
     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
-@token_required
+# @token_required
 def get_board():
     return jsonify(global_board.board)
 

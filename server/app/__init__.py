@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_migrate import Migrate
 from .models import db
+from flask_cors import CORS
 
 migrate = Migrate()
 
@@ -10,6 +11,9 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'GRP4_Checkers'
+
+    # Enable CORS for all routes
+    CORS(app)
 
     db.init_app(app)
     migrate.init_app(app, db)
