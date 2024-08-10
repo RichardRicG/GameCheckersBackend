@@ -1,21 +1,18 @@
 import random
 
 def print_board(board):
-#    Prints the current state of the board in a readable format.
-
+    # Prints the current state of the board in a readable format.
     print("Current Board State:")
     for row in board:
         print(' '.join(row))
     print("\n")
 
 def is_valid_position(row, col, board):
- #    Checks if a position is within bounds and empty.
-
+    # Checks if a position is within bounds and empty.
     return 0 <= row < len(board) and 0 <= col < len(board) and board[row][col] == ' '
 
 def get_all_captures(board, piece_type):
-#    Getting  all valid capture moves for the piece type ('c' for computer, 'p' for player).
-
+    # Getting all valid capture moves for the piece type ('c' for computer, 'p' for player).
     captures = []
     directions = {
         'p': [(-2, -2), (-2, 2)],
@@ -38,8 +35,7 @@ def get_all_captures(board, piece_type):
     return captures
 
 def get_all_moves(board, piece_type):
-#    Get all valid moves for the given piece type ('c' for computer, 'p' for player), including normal moves.
-
+    # Get all valid moves for the given piece type ('c' for computer, 'p' for player), including normal moves.
     moves = []
     directions = {
         'p': [(-1, -1), (-1, 1)],
@@ -58,9 +54,8 @@ def get_all_moves(board, piece_type):
     return moves
 
 def count_pieces(board):
-#    Counts the number of pieces for both player and computer on the board.
-  #To  Returns a tuple with the counts (player_pieces, computer_pieces).
-
+    # Counts the number of pieces for both player and computer on the board.
+    # Returns a tuple with the counts (player_pieces, computer_pieces).
     player_pieces = 0
     computer_pieces = 0
 
@@ -71,7 +66,7 @@ def count_pieces(board):
     return player_pieces, computer_pieces
 
 def crown_piece(board, row, col):
-#    Promotes a piece to a king if it reaches the opposite end of the board.
+    # Promotes a piece to a king if it reaches the opposite end of the board.
     piece = board[row][col]
     if piece == 'p' and row == 0:
         board[row][col] = 'P'
@@ -81,8 +76,7 @@ def crown_piece(board, row, col):
         print(f"Computer's piece at ({row}, {col}) promoted to a king (C).")
 
 def make_computer_move(board):
-#    Function to make a move for the computer, prioritizing captures over normal moves.
-
+    # Function to make a move for the computer, prioritizing captures over normal moves.
     capture_moves = get_all_captures(board, 'c')
     possible_moves = get_all_moves(board, 'c')
 
@@ -111,12 +105,16 @@ def make_computer_move(board):
     player_count, computer_count = count_pieces(board)
     print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
 
+    # Check for winner
+    winner = check_winner(board)
+    if winner:
+        print(f"Game over! {winner} wins!")
+        return None
 
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
 
 def make_player_move(board, start_row, start_col, end_row, end_col):
-#    Function to make a move for the player, enforcing captures over normal moves.
-
+    # Function to make a move for the player, enforcing captures over normal moves.
     capture_moves = get_all_captures(board, 'p')
     if capture_moves:
         valid_move = False
@@ -150,6 +148,12 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
     player_count, computer_count = count_pieces(board)
     print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
 
+    # Check for winner
+    winner = check_winner(board)
+    if winner:
+        print(f"Game over! {winner} wins!")
+        return False
+
     return True
 
 def is_valid_move(board, start_row, start_col, end_row, end_col):
@@ -177,3 +181,21 @@ def is_valid_move(board, start_row, start_col, end_row, end_col):
     
     return False, 'Invalid move.'
 
+def check_winner(board):
+    # Check if there is a winner based on the remaining pieces or available moves.
+    player_pieces, computer_pieces = count_pieces(board)
+
+    if player_pieces == 0:
+        return "Computer"
+    elif computer_pieces == 0:
+        return "Player"
+    
+    player_moves = get_all_moves(board, 'p') + get_all_captures(board, 'p')
+    computer_moves = get_all_moves(board, 'c') + get_all_captures(board, 'c')
+
+    if not player_moves:
+        return "Computer"
+    elif not computer_moves:
+        return "Player"
+    
+    return None
