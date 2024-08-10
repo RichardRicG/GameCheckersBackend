@@ -47,11 +47,11 @@ def home():
     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
-# @token_required
+@token_required
 def get_board():
     return jsonify(global_board.board)
 @game_blueprint.route("/game", methods=['POST'])
-# @token_required
+@token_required
 def game():
     if request.method == 'POST':
         # Get the game board, start and end positions from the request data
