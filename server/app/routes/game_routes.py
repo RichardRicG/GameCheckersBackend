@@ -1,59 +1,31 @@
-from flask import Blueprint, jsonify, request, g as globaluserdata
+# game_routes.py
+from flask import Blueprint, jsonify, request
+
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
-
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..game_Engine.computer import *
-from functools import wraps
 
-import jwt
-
-from flask_cors import CORS
-
-
-main = Blueprint('main', __name__)
 game_blueprint = Blueprint('game', __name__)
 
-cors = CORS()
+
 SECRET_KEY = 'GRP4_Checkers'
 
 # Initialize 
 game_state = {
     'current_turn': 'player',
 }
-# JWT authentiction decorator
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization')
 
-        if not token:
-            return jsonify({'message': 'Token is missing!'}), 403
 
-        try:
-            token = token.split()[1]  
-            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            globaluserdata.current_user = data
-        except jwt.ExpiredSignatureError:
-            return jsonify({'message': 'Token has expired'}), 403
-        except jwt.InvalidTokenError:
-            return jsonify({'message': 'Invalid token'}), 403
 
-        return f(*args, **kwargs)
-
-    return decorated
-
-@main.route('/')
-def home():
-    return "Welcome GRP4 Checkers, testing!"
-
-@game_blueprint.route('/board', methods=['GET'])
-@token_required
-def get_board():
-    return jsonify(global_board.board)
-@game_blueprint.route("/game", methods=['POST'])
-@token_required
+@game_blueprint.route("/game", methods=['POST','GET'])
+# @jwt_required
 def game():
-    if request.method == 'POST':
+
+    if request.method == 'GET':
+        return jsonify({'message': 'Success','board':global_board.board}), 200
+    
+    elif request.method == 'POST':
         # Get the game board, start and end positions from the request data
         board = request.json.get('board', global_board.board)
         start_row = request.json.get('start_row')
@@ -106,7 +78,7 @@ def game():
                     'board': board
                 })
             else:
-                return jsonify({'message': error_message}), 400
+                return jsonify({'board':board,'message': error_message}), 400
 
         elif game_state['current_turn'] == 'computer':
             # Handle the computer's move if the computer's turn is invoked directly
@@ -133,24 +105,25 @@ def game():
 
     return jsonify({'message': 'Invalid request method'}), 405
 
-# Route for starting a new game
-@game_blueprint.route("/newgame", methods=['GET'])
-@token_required
-def new_game():
-    current_player = Player.query.filter_by(username=globaluserdata.current_user['username']).first()
+# # Route for starting a new game
+# @game_blueprint.route("/newgame", methods=['GET'])
+# @jwt_required
+# def new_game():
+#     current_user = get_jwt_identity()
+#     current_player = Player.query.filter_by(id=current_user['user_id']).first()
 
-    if current_player:
-        try:
-            # ResEt the board to the initial state for new game
-            global_board.board = create_initial_board()
-            new_game = Game(player_id=current_player.id, board=global_board.board)
-            db.session.add(new_game)
-            db.session.commit()
-            return jsonify({'message': 'New game started', 'board': new_game.board}), 201
-        except Exception as e:
-            return jsonify({'message': str(e)}), 500
-    else:
-        return jsonify({'message': 'User not logged in'}), 401
+#     if current_player:
+#         try:
+#             # ResEt the board to the initial state for new game
+#             global_board.board = create_initial_board()
+#             new_game = Game(player_id=current_player.id, board=global_board.board)
+#             db.session.add(new_game)
+#             db.session.commit()
+#             return jsonify({'message': 'New game started', 'board': new_game.board}), 201
+#         except Exception as e:
+#             return jsonify({'message': str(e)}), 500
+#     else:
+#         return jsonify({'message': 'User not logged in'}), 401
     
 
 

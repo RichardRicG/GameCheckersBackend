@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_bcrypt import Bcrypt
 from ..models import db, Player
-import jwt
+from flask_jwt_extended import create_access_token
 import datetime 
 
 
@@ -57,14 +57,9 @@ def login():
 
     if player and bcrypt.check_password_hash(player.password, password):
         try:
-            token = jwt.encode(
-                {
-                    'username': player.username,
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1500)
-                },
-                SECRET_KEY,
-                algorithm='HS256'
-            )
+            
+            token = create_access_token(identity={'user_id': player.id, 'username': player.username})
+
 
             # token  decoded to string 
             token = token.decode('utf-8') if isinstance(token, bytes) else token
@@ -80,17 +75,3 @@ def logout():
     # Logic for logout (if needed)
     return jsonify({'message': 'Logout endpoint'})
 
-@auth_blueprint.route('/protected', methods=['GET'])
-def protected():
-    token = request.headers.get('Authorization')
-    if token is None:
-        return jsonify({'message': 'Token is missing!'}), 401
-
-    try:
-        token = token.split()[1]  
-        decoded = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        return jsonify({'message': f'Welcome {decoded["username"]}'}), 200
-    except jwt.ExpiredSignatureError:
-        return jsonify({'message': 'Token expired'}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({'message': 'Invalid token'}), 401

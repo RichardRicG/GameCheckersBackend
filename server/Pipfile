@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-bcrypt = "*"
+flask-jwt-extended = "*"
+flask-cors = "*"
+flask-sqlalchemy = "*"
+flask-migrate = "*"
+
+[dev-packages]
+# Add any development packages you need here
+
+[requires]
+python_version = "3.8"
