@@ -156,7 +156,9 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
 
     return True
 
-def is_valid_move(board, start_row, start_col, end_row, end_col):
+
+
+def is_valid_move(board, start_row, start_col, end_row, end_col, capture=False):
     piece = board[start_row][start_col]
     
     if piece == ' ':
@@ -178,8 +180,83 @@ def is_valid_move(board, start_row, start_col, end_row, end_col):
                 captured_piece = board[captured_row][captured_col]
                 board[captured_row][captured_col] = ' ' 
                 return True, f'Captured {captured_piece}'
-    
+                   
+    if capture:
+        # Validate if the move is a valid capture
+        if is_valid_capture(board, start_row, start_col, end_row, end_col):
+            return True, None
+        else:
+            return False, "Invalid capture move."
+    else:
+        # Validate regular move (non-capturing)
+        if is_valid_non_capture(board, start_row, start_col, end_row, end_col):
+            return True, None
+        else:
+            return False, "Invalid move."
+        
     return False, 'Invalid move.'
+
+def is_valid_capture(board, start_row, start_col, end_row, end_col):
+    """
+    Check if a capture move is valid.
+    """
+    # Ensure the move is diagonal and exactly 2 squares
+    if abs(start_row - end_row) != 2 or abs(start_col - end_col) != 2:
+        return False, 'Invalid capture move. Move must be diagonal and exactly 2 squares.'
+
+    # Ensure the destination square is empty
+    if board[end_row][end_col] != ' ':
+        return False, 'Invalid capture move. Destination square must be empty.'
+
+    # Calculate the position of the piece being captured
+    middle_row = (start_row + end_row) // 2
+    middle_col = (start_col + end_col) // 2
+
+    # Ensure there is an opponent's piece in the middle
+    if board[middle_row][middle_col] == ' ' or board[middle_row][middle_col] == board[start_row][start_col]:
+        return False, 'Invalid capture move. No opponent piece to capture.'
+
+    return True, ''
+
+
+
+def is_valid_non_capture(board, start_row, start_col, end_row, end_col):
+    """
+    Check if a regular (non-capture) move is valid.
+    """
+    # Ensure the move is diagonal and exactly 1 square for regular pieces
+    if abs(start_row - end_row) != 1 or abs(start_col - end_col) != 1:
+        return False, 'Invalid move. Move must be diagonal and exactly 1 square.'
+
+    # Ensure the destination square is empty
+    if board[end_row][end_col] != ' ':
+        return False, 'Invalid move. Destination square must be empty.'
+
+    # Ensure the move is to an adjacent square
+    if board[start_row][start_col] == board[end_row][end_col]:
+        return False, 'Invalid move. Cannot move to a square occupied by your own piece.'
+
+    return True, ''
+
+
+
+def has_more_captures(board, row, col):
+    # Check for possible capture moves in all diagonal directions
+    directions = [(-2, -2), (-2, 2), (2, -2), (2, 2)]
+
+    for dr, dc in directions:
+        end_row = row + dr
+        end_col = col + dc
+        mid_row = row + dr // 2
+        mid_col = col + dc // 2
+
+        if (0 <= end_row < 8 and 0 <= end_col < 8 and 
+            board[end_row][end_col] == ' ' and 
+            board[mid_row][mid_col] != ' ' and 
+            board[mid_row][mid_col] != board[row][col]):
+            return True
+
+    return False
 
 def check_winner(board):
     # Check if there is a winner based on the remaining pieces or available moves.
@@ -199,3 +276,7 @@ def check_winner(board):
         return "Player"
     
     return None
+
+def has_more_captures(board, row, col):
+    # Implement logic to check if there are any more valid captures from the given position
+    return any(is_valid_move(board, row, col, r, c, capture=True)[0] for r in range(8) for c in range(8))
