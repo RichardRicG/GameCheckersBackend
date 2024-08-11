@@ -1,10 +1,14 @@
 # game_routes.py
-from flask import Blueprint, jsonify, request
+from functools import wraps
+from flask import Blueprint, g, jsonify, request
+import jwt
 
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..game_Engine.computer import *
+
+
 
 game_blueprint = Blueprint('game', __name__)
 
@@ -27,7 +31,7 @@ def token_required(f):
         try:
             token = token.split()[1]  
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            globaluserdata.current_user = data
+            g.current_user = data
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 403
         except jwt.InvalidTokenError:
@@ -37,9 +41,9 @@ def token_required(f):
 
     return decorated
 
-@main.route('/')
-def home():
-    return "Welcome GRP4 Checkers, testing!"
+# @main.route('/')
+# def home():
+#     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
 # @token_required
@@ -132,25 +136,25 @@ def game():
 
     return jsonify({'message': 'Invalid request method'}), 405
 
-# # Route for starting a new game
-# @game_blueprint.route("/newgame", methods=['GET'])
-# @jwt_required
-# def new_game():
-#     current_user = get_jwt_identity()
-#     current_player = Player.query.filter_by(id=current_user['user_id']).first()
+# Route for starting a new game
+@game_blueprint.route("/newgame", methods=['GET'])
+@jwt_required
+def new_game():
+    current_user = get_jwt_identity()
+    current_player = Player.query.filter_by(id=current_user['user_id']).first()
 
-#     if current_player:
-#         try:
-#             # ResEt the board to the initial state for new game
-#             global_board.board = create_initial_board()
-#             new_game = Game(player_id=current_player.id, board=global_board.board)
-#             db.session.add(new_game)
-#             db.session.commit()
-#             return jsonify({'message': 'New game started', 'board': new_game.board}), 201
-#         except Exception as e:
-#             return jsonify({'message': str(e)}), 500
-#     else:
-#         return jsonify({'message': 'User not logged in'}), 401
+    if current_player:
+        try:
+            # ResEt the board to the initial state for new game
+            global_board.board = create_initial_board()
+            new_game = Game(player_id=current_player.id, board=global_board.board)
+            db.session.add(new_game)
+            db.session.commit()
+            return jsonify({'message': 'New game started', 'board': new_game.board}), 201
+        except Exception as e:
+            return jsonify({'message': str(e)}), 500
+    else:
+        return jsonify({'message': 'User not logged in'}), 401
     
 
 
