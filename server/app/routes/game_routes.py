@@ -44,11 +44,11 @@ def token_required(f):
 #     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
-@token_required
+# @token_required
 def get_board():
     return jsonify(global_board.board)
 @game_blueprint.route("/game", methods=['POST'])
-@token_required
+# @token_required
 def game():
     if request.method == 'POST':
         board = request.json.get('board', global_board.board)
@@ -63,10 +63,10 @@ def game():
 
         if game_state['current_turn'] == 'player':
             
-            move_successful, is_capture, more_captures = make_player_move(board, start_row, start_col, end_row, end_col)
+            move_successful, is_capture = make_player_move(board, start_row, start_col, end_row, end_col)
 
             if move_successful:
-                if is_capture and more_captures:
+                if is_capture:
                     return jsonify({
                         'message': 'Capture successful. Continue capturing with the same piece.',
                         'board': board
@@ -96,28 +96,6 @@ def game():
 
             else:
                 return jsonify({'message': 'Invalid move'}), 400
-
-        elif game_state['current_turn'] == 'computer':
-            # Handle the computer's move
-            computer_move_details = make_computer_move(board)
-            if computer_move_details:
-                # Check for a winner after the computer's move
-                winner = check_winner(board)
-                if winner:
-                    return jsonify({'message': f'{winner} wins!', 'board': board})
-
-                # Change turn back to player
-                game_state['current_turn'] = 'player'
-                return jsonify({
-                    'message': 'Computer made a move',
-                    'computer_move': computer_move_details,
-                    'board': board
-                })
-            else:
-                return jsonify({'message': 'No valid moves available for the computer'}), 400
-
-        else:
-            return jsonify({'message': 'It\'s not your turn. Wait for the computer to make a move.'}), 403
 
     return jsonify({'message': 'Invalid request method'}), 405
 
