@@ -1,14 +1,10 @@
 from flask import Blueprint, jsonify, request, g as globaluserdata
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
-
 from ..game_Engine.computer import *
 from functools import wraps
-
 import jwt
-
 from flask_cors import CORS
-
 
 main = Blueprint('main', __name__)
 game_blueprint = Blueprint('game', __name__)
@@ -65,28 +61,16 @@ def game():
             return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
 
         if game_state['current_turn'] == 'player':
-            # Check if the move is a capture
-            is_capture = abs(start_row - end_row) == 2 and abs(start_col - end_col) == 2
-            if is_capture:
-                # Validate and execute capture move
-                is_valid_capture_move, error_message = is_valid_capture(board, start_row, start_col, end_row, end_col)
-                if is_valid_capture_move:
-                    # Execute the capture move
-                    board[end_row][end_col] = board[start_row][start_col]
-                    board[start_row][start_col] = ' '
+            
+            move_successful, is_capture, more_captures = make_player_move(board, start_row, start_col, end_row, end_col)
 
-                    # Remove the captured piece
-                    captured_row = (start_row + end_row) // 2
-                    captured_col = (start_col + end_col) // 2
-                    board[captured_row][captured_col] = ' '
-
-                    # Promote to king if necessary
-                    crown_piece(board, end_row, end_col)
-
-                    # Check if further captures are possible
-                    if has_more_captures(board, end_row, end_col):
-                        return jsonify({'message': 'Capture successful. Continue capturing.', 'board': board})
-
+            if move_successful:
+                if is_capture and more_captures:
+                    return jsonify({
+                        'message': 'Capture successful. Continue capturing with the same piece.',
+                        'board': board
+                    })
+                else:
                     # Change turn to computer
                     game_state['current_turn'] = 'computer'
 
@@ -108,50 +92,9 @@ def game():
                         })
                     else:
                         return jsonify({'message': 'No valid moves available for the computer', 'board': board}), 400
-
-                else:
-                    return jsonify({'message': error_message}), 400
 
             else:
-                # Handle as a regular move
-                is_valid_non_capture_move, error_message = is_valid_non_capture(board, start_row, start_col, end_row, end_col)
-                if is_valid_non_capture_move:
-                    # Execute the regular move
-                    board[end_row][end_col] = board[start_row][start_col]
-                    board[start_row][start_col] = ' '
-
-                    # Promote to king if necessary
-                    crown_piece(board, end_row, end_col)
-
-                    # Check for a winner after the move
-                    winner = check_winner(board)
-                    if winner:
-                        return jsonify({'message': f'{winner} wins!', 'board': board})
-
-                    # Change turn to computer
-                    game_state['current_turn'] = 'computer'
-
-                    # Computer's move
-                    computer_move_details = make_computer_move(board)
-                    if computer_move_details:
-                        # Check for a winner after the computer's move
-                        winner = check_winner(board)
-                        if winner:
-                            return jsonify({'message': f'{winner} wins!', 'board': board})
-
-                        # Change turn back to player
-                        game_state['current_turn'] = 'player'
-                        return jsonify({
-                            'message': 'Valid move',
-                            'player_move': {'start': (start_row, start_col), 'end': (end_row, end_col)},
-                            'computer_move': computer_move_details,
-                            'board': board
-                        })
-                    else:
-                        return jsonify({'message': 'No valid moves available for the computer', 'board': board}), 400
-
-                else:
-                    return jsonify({'message': error_message}), 400
+                return jsonify({'message': 'Invalid move'}), 400
 
         elif game_state['current_turn'] == 'computer':
             # Handle the computer's move
@@ -176,9 +119,6 @@ def game():
             return jsonify({'message': 'It\'s not your turn. Wait for the computer to make a move.'}), 403
 
     return jsonify({'message': 'Invalid request method'}), 405
-
-
-
 
 
 # Route for starting a new game

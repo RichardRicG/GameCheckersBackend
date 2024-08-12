@@ -114,13 +114,16 @@ def make_computer_move(board):
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
 
 def make_player_move(board, start_row, start_col, end_row, end_col):
-    # Function to make a move for the player, enforcing captures over normal moves.
+    
     capture_moves = get_all_captures(board, 'p')
+    is_capture = False
+
     if capture_moves:
         valid_move = False
         for move in capture_moves:
             if move[0] == start_row and move[1] == start_col and move[2] == end_row and move[3] == end_col:
                 valid_move = True
+                is_capture = True
                 capture_row, capture_col = move[4], move[5]
                 board[end_row][end_col] = board[start_row][start_col]
                 board[start_row][start_col] = ' '
@@ -129,7 +132,7 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
                 break
         if not valid_move:
             print("Invalid move. You must capture an opponent's piece.")
-            return False
+            return False, False
     else:
         valid, message = is_valid_move(board, start_row, start_col, end_row, end_col)
         if valid:
@@ -138,25 +141,17 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
             print(f"Player moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
         else:
             print(message)
-            return False
+            return False, False
 
     # Promote to king if necessary
     crown_piece(board, end_row, end_col)
 
     print_board(board)
 
-    player_count, computer_count = count_pieces(board)
-    print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
+    # Check if more captures are possible
+    more_captures = has_more_captures(board, end_row, end_col)
 
-    # Check for winner
-    winner = check_winner(board)
-    if winner:
-        print(f"Game over! {winner} wins!")
-        return False
-
-    return True
-
-
+    return True, is_capture, more_captures
 
 def is_valid_move(board, start_row, start_col, end_row, end_col, capture=False):
     piece = board[start_row][start_col]
