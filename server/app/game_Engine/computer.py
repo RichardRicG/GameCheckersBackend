@@ -80,47 +80,66 @@ def make_computer_move(board):
     capture_moves = get_all_captures(board, 'c')
     possible_moves = get_all_moves(board, 'c')
 
-    if capture_moves:
+    while capture_moves:
         move = random.choice(capture_moves)
         start_row, start_col, end_row, end_col, capture_row, capture_col = move
         board[end_row][end_col] = board[start_row][start_col]
         board[start_row][start_col] = ' '
         board[capture_row][capture_col] = ' '
         print(f"Computer captured a piece at ({capture_row}, {capture_col}) and moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
-    elif possible_moves:
+
+        # Check if further captures are possible for the same piece
+        capture_moves = get_all_captures(board, 'c')
+        # Narrow down to only those captures that involve the same piece
+        capture_moves = [capture for capture in capture_moves if capture[0] == end_row and capture[1] == end_col]
+
+        # Promote to king if necessary
+        crown_piece(board, end_row, end_col)
+
+        # Print the board after each capture
+        print_board(board)
+
+        # Check for winner after each capture
+        winner = check_winner(board)
+        if winner:
+            print(f"Game over! {winner} wins!")
+            return None
+
+    if not capture_moves and possible_moves:
+        # If no more captures are possible, make a normal move
         move = random.choice(possible_moves)
         start_row, start_col, end_row, end_col = move
         board[end_row][end_col] = board[start_row][start_col]
         board[start_row][start_col] = ' '
         print(f"Computer moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
-    else:
-        print("No valid moves available for the computer.")
-        return None
+        
+        # Promote to king if necessary
+        crown_piece(board, end_row, end_col)
 
-    # Promote to king if necessary
-    crown_piece(board, end_row, end_col)
+        print_board(board)
 
-    print_board(board)
+        # Check for winner after the normal move
+        winner = check_winner(board)
+        if winner:
+            print(f"Game over! {winner} wins!")
+            return None
 
-    player_count, computer_count = count_pieces(board)
-    print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
-
-    # Check for winner
-    winner = check_winner(board)
-    if winner:
-        print(f"Game over! {winner} wins!")
-        return None
-
+    # Return the final move details
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
 
+
+
 def make_player_move(board, start_row, start_col, end_row, end_col):
-    # Function to make a move for the player, enforcing captures over normal moves.
+    
     capture_moves = get_all_captures(board, 'p')
+    is_capture = False
+
     if capture_moves:
         valid_move = False
         for move in capture_moves:
             if move[0] == start_row and move[1] == start_col and move[2] == end_row and move[3] == end_col:
                 valid_move = True
+                is_capture = True
                 capture_row, capture_col = move[4], move[5]
                 board[end_row][end_col] = board[start_row][start_col]
                 board[start_row][start_col] = ' '
@@ -129,7 +148,7 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
                 break
         if not valid_move:
             print("Invalid move. You must capture an opponent's piece.")
-            return False
+            return False, False
     else:
         valid, message = is_valid_move(board, start_row, start_col, end_row, end_col)
         if valid:
@@ -138,25 +157,19 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
             print(f"Player moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
         else:
             print(message)
-            return False
+            return False, False
 
     # Promote to king if necessary
     crown_piece(board, end_row, end_col)
 
     print_board(board)
 
-    player_count, computer_count = count_pieces(board)
-    print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
+    # Check if more captures are possible
+    more_captures = has_more_captures(board, end_row, end_col)
 
-    # Check for winner
-    winner = check_winner(board)
-    if winner:
-        print(f"Game over! {winner} wins!")
-        return False
+    return True, is_capture, more_captures
 
-    return True
-
-def is_valid_move(board, start_row, start_col, end_row, end_col):
+def is_valid_move(board, start_row, start_col, end_row, end_col, capture=False):
     piece = board[start_row][start_col]
     
     if piece == ' ':
@@ -178,8 +191,83 @@ def is_valid_move(board, start_row, start_col, end_row, end_col):
                 captured_piece = board[captured_row][captured_col]
                 board[captured_row][captured_col] = ' ' 
                 return True, f'Captured {captured_piece}'
-    
+                   
+    if capture:
+        # Validate if the move is a valid capture
+        if is_valid_capture(board, start_row, start_col, end_row, end_col):
+            return True, None
+        else:
+            return False, "Invalid capture move."
+    else:
+        # Validate regular move (non-capturing)
+        if is_valid_non_capture(board, start_row, start_col, end_row, end_col):
+            return True, None
+        else:
+            return False, "Invalid move."
+        
     return False, 'Invalid move.'
+
+def is_valid_capture(board, start_row, start_col, end_row, end_col):
+    """
+    Check if a capture move is valid.
+    """
+    # Ensure the move is diagonal and exactly 2 squares
+    if abs(start_row - end_row) != 2 or abs(start_col - end_col) != 2:
+        return False, 'Invalid capture move. Move must be diagonal and exactly 2 squares.'
+
+    # Ensure the destination square is empty
+    if board[end_row][end_col] != ' ':
+        return False, 'Invalid capture move. Destination square must be empty.'
+
+    # Calculate the position of the piece being captured
+    middle_row = (start_row + end_row) // 2
+    middle_col = (start_col + end_col) // 2
+
+    # Ensure there is an opponent's piece in the middle
+    if board[middle_row][middle_col] == ' ' or board[middle_row][middle_col] == board[start_row][start_col]:
+        return False, 'Invalid capture move. No opponent piece to capture.'
+
+    return True, ''
+
+
+
+def is_valid_non_capture(board, start_row, start_col, end_row, end_col):
+    """
+    Check if a regular (non-capture) move is valid.
+    """
+    # Ensure the move is diagonal and exactly 1 square for regular pieces
+    if abs(start_row - end_row) != 1 or abs(start_col - end_col) != 1:
+        return False, 'Invalid move. Move must be diagonal and exactly 1 square.'
+
+    # Ensure the destination square is empty
+    if board[end_row][end_col] != ' ':
+        return False, 'Invalid move. Destination square must be empty.'
+
+    # Ensure the move is to an adjacent square
+    if board[start_row][start_col] == board[end_row][end_col]:
+        return False, 'Invalid move. Cannot move to a square occupied by your own piece.'
+
+    return True, ''
+
+
+
+def has_more_captures(board, row, col):
+    # Check for possible capture moves in all diagonal directions
+    directions = [(-2, -2), (-2, 2), (2, -2), (2, 2)]
+
+    for dr, dc in directions:
+        end_row = row + dr
+        end_col = col + dc
+        mid_row = row + dr // 2
+        mid_col = col + dc // 2
+
+        if (0 <= end_row < 8 and 0 <= end_col < 8 and 
+            board[end_row][end_col] == ' ' and 
+            board[mid_row][mid_col] != ' ' and 
+            board[mid_row][mid_col] != board[row][col]):
+            return True
+
+    return False, any(is_valid_move(board, row, col, r, c, capture=True)[0] for r in range(8) for c in range(8))
 
 def check_winner(board):
     # Check if there is a winner based on the remaining pieces or available moves.
@@ -199,3 +287,5 @@ def check_winner(board):
         return "Player"
     
     return None
+
+
