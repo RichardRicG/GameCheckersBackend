@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from .models import db
 from flask_cors import CORS
 
+
 migrate = Migrate()
 
 
@@ -20,13 +21,13 @@ def create_app():
 
     # Register blueprints
     
-    from .routes.test_route import main
-    app.register_blueprint(main)
+    # from .routes.test_route import main
+    # app.register_blueprint(main)
 
     from .routes.auth_route import auth_blueprint
     app.register_blueprint(auth_blueprint)
     
-    from.routes.game_routes import game_blueprint
+    from .routes.game_routes import game_blueprint
     app.register_blueprint(game_blueprint)
 
     return app
