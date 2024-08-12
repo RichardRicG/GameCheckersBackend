@@ -53,28 +53,6 @@ def get_all_moves(board, piece_type):
                         moves.append((row, col, end_row, end_col))
     return moves
 
-def count_pieces(board):
-    # Counts the number of pieces for both player and computer on the board.
-    # Returns a tuple with the counts (player_pieces, computer_pieces).
-    player_pieces = 0
-    computer_pieces = 0
-
-    for row in board:
-        player_pieces += row.count('p') + row.count('P')
-        computer_pieces += row.count('c') + row.count('C')
-    
-    return player_pieces, computer_pieces
-
-def crown_piece(board, row, col):
-    # Promotes a piece to a king if it reaches the opposite end of the board.
-    piece = board[row][col]
-    if piece == 'p' and row == 0:
-        board[row][col] = 'P'
-        print(f"Player's piece at ({row}, {col}) promoted to a king (P).")
-    elif piece == 'c' and row == 7:
-        board[row][col] = 'C'
-        print(f"Computer's piece at ({row}, {col}) promoted to a king (C).")
-
 def make_computer_move(board):
     # Function to make a move for the computer, prioritizing captures over normal moves.
     capture_moves = get_all_captures(board, 'c')
@@ -104,6 +82,9 @@ def make_computer_move(board):
 
     player_count, computer_count = count_pieces(board)
     print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
+
+    # Print possible moves for the player
+    print_possible_moves(board, 'p')
 
     # Check for winner
     winner = check_winner(board)
@@ -148,6 +129,9 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
     player_count, computer_count = count_pieces(board)
     print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
 
+    # # Print possible moves for the player
+    # print_possible_moves(board, 'p')
+
     # Check for winner
     winner = check_winner(board)
     if winner:
@@ -155,6 +139,47 @@ def make_player_move(board, start_row, start_col, end_row, end_col):
         return False
 
     return True
+#for all possible move p can make 
+def print_possible_moves(board, piece_type):
+    # Print all possible moves for the given piece type ('p' for player).
+    moves = get_all_moves(board, piece_type)
+    captures = get_all_captures(board, piece_type)
+    all_moves = moves + captures
+    
+    if all_moves:
+        print(f"Possible moves for {piece_type.upper()}:")
+        for move in all_moves:
+            if len(move) == 4:  # Regular move
+                start_row, start_col, end_row, end_col = move
+                print(f"Move from ({start_row}, {start_col}) to ({end_row}, {end_col})")
+            elif len(move) == 6:  # Capture move
+                start_row, start_col, end_row, end_col, capture_row, capture_col = move
+                print(f"Capture move from ({start_row}, {start_col}) to ({end_row}, {end_col}) capturing ({capture_row}, {capture_col})")
+    else:
+        print(f"No possible moves for {piece_type.upper()}.")
+
+def count_pieces(board):
+    # Counts the number of pieces for both player and computer on the board.
+    # Returns a tuple with the counts (player_pieces, computer_pieces).
+    player_pieces = 0
+    computer_pieces = 0
+
+    for row in board:
+        player_pieces += row.count('p') + row.count('P')
+        computer_pieces += row.count('c') + row.count('C')
+    
+    return player_pieces, computer_pieces
+
+def crown_piece(board, row, col):
+    # Promotes a piece to a king if it reaches the opposite end of the board.
+    piece = board[row][col]
+    if piece == 'p' and row == 0:
+        board[row][col] = 'P'
+        print(f"Player's piece at ({row}, {col}) promoted to a king (P).")
+    elif piece == 'c' and row == 7:
+        board[row][col] = 'C'
+        print(f"Computer's piece at ({row}, {col}) promoted to a king (C).")
+
 
 def is_valid_move(board, start_row, start_col, end_row, end_col):
     piece = board[start_row][start_col]
