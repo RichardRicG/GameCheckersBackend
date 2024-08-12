@@ -267,7 +267,7 @@ def has_more_captures(board, row, col):
             board[mid_row][mid_col] != board[row][col]):
             return True
 
-    return False
+    return False, any(is_valid_move(board, row, col, r, c, capture=True)[0] for r in range(8) for c in range(8))
 
 def check_winner(board):
     # Check if there is a winner based on the remaining pieces or available moves.
@@ -288,6 +288,4 @@ def check_winner(board):
     
     return None
 
-def has_more_captures(board, row, col):
-    # Implement logic to check if there are any more valid captures from the given position
-    return any(is_valid_move(board, row, col, r, c, capture=True)[0] for r in range(8) for c in range(8))
+
