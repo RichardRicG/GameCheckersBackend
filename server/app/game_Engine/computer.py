@@ -80,38 +80,54 @@ def make_computer_move(board):
     capture_moves = get_all_captures(board, 'c')
     possible_moves = get_all_moves(board, 'c')
 
-    if capture_moves:
+    while capture_moves:
         move = random.choice(capture_moves)
         start_row, start_col, end_row, end_col, capture_row, capture_col = move
         board[end_row][end_col] = board[start_row][start_col]
         board[start_row][start_col] = ' '
         board[capture_row][capture_col] = ' '
         print(f"Computer captured a piece at ({capture_row}, {capture_col}) and moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
-    elif possible_moves:
+
+        # Check if further captures are possible for the same piece
+        capture_moves = get_all_captures(board, 'c')
+        # Narrow down to only those captures that involve the same piece
+        capture_moves = [capture for capture in capture_moves if capture[0] == end_row and capture[1] == end_col]
+
+        # Promote to king if necessary
+        crown_piece(board, end_row, end_col)
+
+        # Print the board after each capture
+        print_board(board)
+
+        # Check for winner after each capture
+        winner = check_winner(board)
+        if winner:
+            print(f"Game over! {winner} wins!")
+            return None
+
+    if not capture_moves and possible_moves:
+        # If no more captures are possible, make a normal move
         move = random.choice(possible_moves)
         start_row, start_col, end_row, end_col = move
         board[end_row][end_col] = board[start_row][start_col]
         board[start_row][start_col] = ' '
         print(f"Computer moved from ({start_row}, {start_col}) to ({end_row}, {end_col})")
-    else:
-        print("No valid moves available for the computer.")
-        return None
+        
+        # Promote to king if necessary
+        crown_piece(board, end_row, end_col)
 
-    # Promote to king if necessary
-    crown_piece(board, end_row, end_col)
+        print_board(board)
 
-    print_board(board)
+        # Check for winner after the normal move
+        winner = check_winner(board)
+        if winner:
+            print(f"Game over! {winner} wins!")
+            return None
 
-    player_count, computer_count = count_pieces(board)
-    print(f"Player pieces: {player_count}, Computer pieces: {computer_count}")
-
-    # Check for winner
-    winner = check_winner(board)
-    if winner:
-        print(f"Game over! {winner} wins!")
-        return None
-
+    # Return the final move details
     return {'start': (start_row, start_col), 'end': (end_row, end_col)}
+
+
 
 def make_player_move(board, start_row, start_col, end_row, end_col):
     
