@@ -1,15 +1,16 @@
-from flask import Blueprint, jsonify, request, g as globaluserdata
+from flask import Blueprint, g, jsonify, request
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..game_Engine.computer import *
 from functools import wraps
 import jwt
-from flask_cors import CORS
 
-main = Blueprint('main', __name__)
+
+
 game_blueprint = Blueprint('game', __name__)
 
-cors = CORS()
+
 SECRET_KEY = 'GRP4_Checkers'
 
 # Initialize 
@@ -28,7 +29,7 @@ def token_required(f):
         try:
             token = token.split()[1]  
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            globaluserdata.current_user = data
+            g.current_user = data
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 403
         except jwt.InvalidTokenError:
@@ -38,9 +39,9 @@ def token_required(f):
 
     return decorated
 
-@main.route('/')
-def home():
-    return "Welcome GRP4 Checkers, testing!"
+# @main.route('/')
+# def home():
+#     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
 @token_required
@@ -123,9 +124,10 @@ def game():
 
 # Route for starting a new game
 @game_blueprint.route("/newgame", methods=['GET'])
-@token_required
+@jwt_required
 def new_game():
-    current_player = Player.query.filter_by(username=globaluserdata.current_user['username']).first()
+    current_user = get_jwt_identity()
+    current_player = Player.query.filter_by(id=current_user['user_id']).first()
 
     if current_player:
         try:
