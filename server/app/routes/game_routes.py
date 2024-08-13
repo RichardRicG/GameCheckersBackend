@@ -42,14 +42,15 @@ def home():
     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
-@token_required
+# @token_required
 def get_board():
     return jsonify(global_board.board)
 
 @game_blueprint.route("/game", methods=['POST'])
-@token_required
+# @token_required
 def game():
     if request.method == 'POST':
+
         current_player = Player.query.filter_by(username=globaluserdata.current_user['username']).first()
 
         if current_player:
@@ -111,6 +112,42 @@ def game():
                             # Change the turn back to player
                             game_state['current_turn'] = 'player'
 
+
+        board = request.json.get('board', global_board.board)
+        start_row = request.json.get('start_row')
+        start_col = request.json.get('start_col')
+        end_row = request.json.get('end_row')
+        end_col = request.json.get('end_col')
+
+        # Ensure the move coordinates are within bounds
+        if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
+            return jsonify({'message': 'Invalid move. Out of board bounds.'}), 400
+
+        if game_state['current_turn'] == 'player':
+            
+            move_successful, is_capture = make_player_move(board, start_row, start_col, end_row, end_col)
+
+            if move_successful:
+                if is_capture:
+                    return jsonify({
+                        'message': 'Capture successful. Continue capturing with the same piece.',
+                        'board': board
+                    })
+                else:
+                    # Change turn to computer
+                    game_state['current_turn'] = 'computer'
+
+                    # Computer's move
+                    computer_move_details = make_computer_move(board)
+                    if computer_move_details:
+                        # Check for a winner after the computer's move
+                        winner = check_winner(board)
+                        if winner:
+                            return jsonify({'message': f'{winner} wins!', 'board': board})
+
+                        # Change turn back to player
+                        game_state['current_turn'] = 'player'
+
                         return jsonify({
                             'message': 'Valid move',
                             'player_move': {'start': (start_row, start_col), 'end': (end_row, end_col)},
@@ -123,11 +160,16 @@ def game():
                     return jsonify({'message': 'It\'s not your turn. Wait for the computer to make a move.'}), 403
 
             else:
+
                 return jsonify({'message': 'No active game found.'}), 404
 
         else:
             return jsonify({'message': 'User not found'}), 405
         
+
+                return jsonify({'message': 'Invalid move'}), 400
+
+
     return jsonify({'message': 'Invalid request method'}), 405
 
 # Route for the computer move
