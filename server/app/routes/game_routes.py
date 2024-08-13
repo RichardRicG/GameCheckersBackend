@@ -17,6 +17,7 @@ SECRET_KEY = 'GRP4_Checkers'
 game_state = {
     'current_turn': 'player',
 }
+
 # JWT authentiction decorator
 def token_required(f):
     @wraps(f)
@@ -29,7 +30,7 @@ def token_required(f):
         try:
             token = token.split()[1]  
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            g.current_user = data
+            g.user_data = data
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 403
         except jwt.InvalidTokenError:
@@ -102,10 +103,11 @@ def game():
 
 # Route for starting a new game
 @game_blueprint.route("/newgame", methods=['GET'])
-@jwt_required
+@token_required
 def new_game():
-    current_user = get_jwt_identity()
-    current_player = Player.query.filter_by(id=current_user['user_id']).first()
+    current_user = g.user_data
+    currentuser_username=current_user['username']
+    current_player = Player.query.filter_by(username=currentuser_username).first()
 
     if current_player:
         try:
