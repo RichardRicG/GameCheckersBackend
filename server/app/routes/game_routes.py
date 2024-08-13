@@ -29,7 +29,7 @@ def token_required(f):
         try:
             token = token.split()[1]  
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            g.current_user = data
+            g.user_data = data
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 403
         except jwt.InvalidTokenError:
@@ -99,7 +99,7 @@ def game():
 
 
 # Route for starting a new game
-@game_blueprint.route("/newgame", methods=['GET'])
+@game_blueprint.route("/new_game", methods=['GET'])
 @jwt_required
 def new_game():
     current_user = get_jwt_identity()
@@ -117,6 +117,25 @@ def new_game():
             return jsonify({'message': str(e)}), 500
     else:
         return jsonify({'message': 'User not logged in'}), 401
-    
 
+
+    
+@game_blueprint.route('/restart', methods=['GET'])
+@token_required
+def restart_player():
+    
+    try:
+
+        global_board.board = create_initial_board()
+        game.board = global_board.board
+        
+        # Optionally, reset other game state variables
+        game_state['current_turn'] = 'player'
+        
+        # Commit the changes to the database
+        db.session.commit()
+
+        return jsonify({"message": "Game restarted", "board": game.board}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
