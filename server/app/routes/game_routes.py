@@ -160,7 +160,7 @@ def new_game():
     
 @game_blueprint.route('/quitgame', methods=['GET'])
 @token_required
-def restart_player():
+def quit_player():
 
     try:
 
