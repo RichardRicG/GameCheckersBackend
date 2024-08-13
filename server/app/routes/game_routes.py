@@ -31,7 +31,7 @@ def token_required(f):
         try:
             token = token.split()[1]  
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            g.current_user = data
+            g.user_data = data
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 403
         except jwt.InvalidTokenError:
@@ -49,7 +49,7 @@ def token_required(f):
 # @token_required
 def get_board():
     return jsonify(global_board.board)
-@game_blueprint.route("/game", methods=['POST'])
+@game_blueprint.route('/game', methods=['POST'])
 # @token_required
 def game():
 
@@ -137,7 +137,7 @@ def game():
     return jsonify({'message': 'Invalid request method'}), 405
 
 # Route for starting a new game
-@game_blueprint.route("/newgame", methods=['GET'])
+@game_blueprint.route("/new_game", methods=['GET'])
 @jwt_required
 def new_game():
     current_user = get_jwt_identity()
@@ -155,6 +155,52 @@ def new_game():
             return jsonify({'message': str(e)}), 500
     else:
         return jsonify({'message': 'User not logged in'}), 401
-    
 
+# @game_blueprint.route("/restart", methods=['GET'])
+# @jwt_required
+# def restart_game():
+#     current_user = get_jwt_identity()
+#     current_player = Player.query.filter_by(id=current_user['user_id']).first()
+
+#     if current_player: 
+#         global_board.board = create_initial_board()
+#         game_state['current_turn'] = 'player'
+#         db.session.commit()
+#         return jsonify({'message': 'Game restarted', 'board': global_board.board}), 200
+#     if game in Game:
+#         restarted_game = Game(current_player = current_player.id,board = global_board.board)
+#         db.session.add(restarted_game)
+#         db.session.commit()
+#         return jsonify({"message": "restarted_game","board":restarted_game.board})
+    
+@game_blueprint.route('/restart', methods=['GET'])
+@token_required
+def restart_player():
+    
+    # current_user = g.user_data
+    # current_player = Player.query.filter_by(username =current_user['username']).first()
+
+    # if not current_player:
+    #     return jsonify({"message": "User not found"}), 404
+
+    # # Find the game associated with the current player
+    # game = Game.query.filter_by(player_id=current_player.id).order_by(Game.id.desc()).first()
+
+    # if not game:
+    #     return jsonify({"message": "Cannot restart game as no existing game was found"}), 404
+
+    try:
+
+        global_board.board = create_initial_board()
+        game.board = global_board.board
+        
+        # Optionally, reset other game state variables
+        game_state['current_turn'] = 'player'
+        
+        # Commit the changes to the database
+        db.session.commit()
+
+        return jsonify({"message": "Game restarted", "board": game.board}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
