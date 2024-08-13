@@ -63,10 +63,10 @@ def game():
 
         if game_state['current_turn'] == 'player':
             
-            move_successful, is_capture = make_player_move(board, start_row, start_col, end_row, end_col)
+            move_successful, is_capture, more_captures = make_player_move(board, start_row, start_col, end_row, end_col)
 
             if move_successful:
-                if is_capture:
+                if is_capture and more_captures:
                     return jsonify({
                         'message': 'Capture successful. Continue capturing with the same piece.',
                         'board': board
@@ -96,8 +96,6 @@ def game():
 
             else:
                 return jsonify({'message': 'Invalid move'}), 400
-
-    return jsonify({'message': 'Invalid request method'}), 405
 
 
 # Route for starting a new game
