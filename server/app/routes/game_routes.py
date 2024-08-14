@@ -1,10 +1,12 @@
+# game_routes.py
+from functools import wraps
 from flask import Blueprint, g, jsonify, request
+import jwt
+
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..game_Engine.computer import *
-from functools import wraps
-import jwt
 
 
 
@@ -44,7 +46,7 @@ def token_required(f):
 #     return "Welcome GRP4 Checkers, testing!"
 
 @game_blueprint.route('/board', methods=['GET'])
-@token_required
+# @token_required
 def get_board():
     return jsonify(global_board.board)
 @game_blueprint.route("/game", methods=['POST'])
@@ -98,6 +100,8 @@ def game():
                 return jsonify({'message': 'Invalid move'}), 400
 
 
+
+
 # Route for starting a new game
 @game_blueprint.route("/new_game", methods=['GET'])
 @jwt_required
@@ -120,6 +124,23 @@ def new_game():
 
 
     
+@game_blueprint.route('/quitgame', methods=['GET'])
+@token_required
+def quit_player():
+
+    try:
+        global_board.board = create_initial_board()
+        game.board = global_board.board
+
+        game_state['current_turn'] = 'player'
+        
+        db.session.commit()
+
+        return jsonify({"message": "Game restarted", "board": game.board}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
 @game_blueprint.route('/restart', methods=['GET'])
 @token_required
 def restart_player():
@@ -139,3 +160,4 @@ def restart_player():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
+       
