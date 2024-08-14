@@ -1,8 +1,8 @@
-"""initial migration
+"""empty message
 
-Revision ID: 69bcac74f3a7
+Revision ID: 911156ed374c
 Revises: 
-Create Date: 2024-08-01 14:30:27.993705
+Create Date: 2024-08-13 12:25:16.719419
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '69bcac74f3a7'
+revision = '911156ed374c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,6 +31,12 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('player_id', sa.Integer(), nullable=False),
     sa.Column('board', sa.JSON(), nullable=False),
+    sa.Column('move_player', sa.String(length=10), nullable=False),
+    sa.Column('start_row', sa.Integer(), nullable=False),
+    sa.Column('start_col', sa.Integer(), nullable=False),
+    sa.Column('end_row', sa.Integer(), nullable=False),
+    sa.Column('end_col', sa.Integer(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.ForeignKeyConstraint(['player_id'], ['player.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
