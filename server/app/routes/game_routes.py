@@ -166,13 +166,26 @@ def quit_player():
 
         global_board.board = create_initial_board()
         game.board = global_board.board
-        
-        # Optionally, reset other game state variables
         game_state['current_turn'] = 'player'
-        
-        # Commit the changes to the database
         db.session.commit()
 
-        return jsonify({"message": "Game restarted", "board": game.board}), 200
+        return jsonify({"message": "Game quitted", "board": game.board}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+@game_blueprint.route('/logout', methods=['GET'])
+@token_required
+def logout_player():
+
+    try:
+
+        global_board.board = create_initial_board()
+        game.board = global_board.board
+        
+        game_state['current_turn'] = 'player'
+        db.session.commit()
+
+        return jsonify({"message": "Game logout", "board": game.board}), 200
     except Exception as e:
         return jsonify({"message": str(e)}), 500
