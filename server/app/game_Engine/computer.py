@@ -311,8 +311,8 @@ def check_winner(board):
     elif computer_pieces == 0:
         return "Player"
     
-    player_moves = get_all_moves(board, 'p') + get_all_captures(board, 'p')
-    computer_moves = get_all_moves(board, 'c') + get_all_captures(board, 'c')
+    player_moves = get_all_moves(board, 'p') + get_all_captures(board, 'p')+ get_all_moves(board, 'P') + get_all_captures(board, 'P')
+    computer_moves = get_all_moves(board, 'c') + get_all_captures(board, 'c')+ get_all_moves(board, 'C') + get_all_captures(board, 'C')
 
     if not player_moves:
         return "Computer"
