@@ -48,7 +48,14 @@ def token_required(f):
 @game_blueprint.route('/board', methods=['GET'])
 @token_required
 def get_board():
-    return jsonify(global_board.board)
+    player_pieces, computer_pieces =count_pieces(global_board.board)
+    game_winner = check_winner(global_board.board)
+
+    if game_winner!=None:
+        return jsonify({'message': f'Game over. {game_winner} wins!','Computer_Pieces':computer_pieces,'Player_pieces':player_pieces,'Game_Winner':game_winner, 'board': global_board.board}), 200
+    elif game_winner ==None:
+       return jsonify({'message': f'Game Ongoing','Computer_Pieces':computer_pieces,'Player_pieces':player_pieces,'Game_Winner':"Ongoing", 'board': global_board.board}), 200
+
 @game_blueprint.route("/game", methods=['POST'])
 @token_required
 def game():
@@ -104,10 +111,10 @@ def game():
 
 # Route for starting a new game
 @game_blueprint.route("/new_game", methods=['GET'])
-@jwt_required
+@token_required
 def new_game():
-    current_user = get_jwt_identity()
-    current_player = Player.query.filter_by(id=current_user['user_id']).first()
+    current_user = g.user_data()
+    current_player = Player.query.filter_by(username=current_user['username']).first()
 
     if current_player:
         try:
