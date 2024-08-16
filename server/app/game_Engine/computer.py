@@ -35,9 +35,10 @@ def get_all_captures(board, piece_type):
                     mid_row, mid_col = row + dr // 2, col + dc // 2
                     end_row, end_col = row + dr, col + dc
                     if 0 <= end_row < 8 and 0 <= end_col < 8:
-                        if board[mid_row][mid_col] != ' ' and board[end_row][end_col] == ' ':
+                        if board[end_row][end_col] == ' ':
                             # Check if the piece being captured is an opponent's piece
-                            if board[mid_row][mid_col].lower() != piece_type:
+                            middle_piece = board[mid_row][mid_col]
+                            if middle_piece != ' ' and middle_piece.lower() != piece_type:
                                 captures.append((row, col, end_row, end_col, mid_row, mid_col))
     return captures
 
@@ -205,6 +206,9 @@ def crown_piece(board, row, col):
 
 def is_valid_move(board, start_row, start_col, end_row, end_col, capture=False):
     piece = board[start_row][start_col]
+
+    if board[end_row][end_col] != ' ':
+        return False, 'Invalid move. Destination square must be empty.'
     
     if piece == ' ':
         return False, 'Invalid move. No piece at the starting position.'

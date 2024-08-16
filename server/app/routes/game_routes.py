@@ -5,7 +5,7 @@ import jwt
 
 from ..models import db, Player, Game
 from ..game_Engine.board import global_board, create_initial_board  
-from flask_jwt_extended import jwt_required, get_jwt_identity
+# from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..game_Engine.computer import *
 
 
@@ -75,6 +75,23 @@ def game():
             move_successful, is_capture, more_captures = make_player_move(board, start_row, start_col, end_row, end_col)
 
             if move_successful:
+
+                # Save the move to the database
+                current_user = g.user_data
+                current_player = Player.query.filter_by(username=current_user['username']).first()
+                new_move = Game(
+                    player_id=current_player.id,
+                    board=board,
+                    move_player='player',
+                    start_row=start_row,
+                    start_col=start_col,
+                    end_row=end_row,
+                    end_col=end_col
+                )
+                db.session.add(new_move)
+                db.session.commit()
+
+
                 if is_capture and more_captures:
                     return jsonify({
                         'message': 'Capture successful. Continue capturing with the same piece.',
@@ -87,6 +104,19 @@ def game():
                     # Computer's move
                     computer_move_details = make_computer_move(board)
                     if computer_move_details:
+
+                         # Save the computer's move to the database
+                        new_move_computer = Game(
+                            player_id=current_player.id,
+                            board=board,
+                            move_player='computer',
+                            start_row=computer_move_details['start'][0],
+                            start_col=computer_move_details['start'][1],
+                            end_row=computer_move_details['end'][0],
+                            end_col=computer_move_details['end'][1]
+                        )
+                        db.session.add(new_move_computer)
+                        db.session.commit()
                         # Check for a winner after the computer's move
                         winner = check_winner(board)
                         if winner:
@@ -107,6 +137,21 @@ def game():
                 return jsonify({'message': 'Invalid move'}), 400
 
 
+@game_blueprint.route('/restore', methods=['GET'])
+@token_required
+def restore_game():
+    current_user = g.user_data
+    current_player = Player.query.filter_by(username=current_user['username']).first()
+
+    # Fetch the last move from the Game table
+    last_move = Game.query.filter_by(player_id=current_player.id).order_by(Game.id.desc()).first()
+
+    if last_move:
+        # Restore the board to the state of the last move
+        global_board.board = last_move.board
+        return jsonify({'message': 'Game restored to previous state', 'board': last_move.board}), 200
+    else:
+        return jsonify({'message': 'No previous moves found to restore.'}), 404
 
 
 # Route for starting a new game
